@@ -11,6 +11,8 @@ import UIKit
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchControllerDelegate, UISearchBarDelegate, UISearchResultsUpdating {
     
     @IBOutlet weak var tableView: UITableView!
+    let kAppId = "1e4a3403"
+    let kAppKey = "26c3738674e4844f10eec95c6608b5d0"
     
     var searchController: UISearchController!
     var suggestedSearchFoods:[String] = []
@@ -20,9 +22,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         searchController = UISearchController(searchResultsController: nil)
-
+        
         searchController.dimsBackgroundDuringPresentation = false
         searchController.hidesNavigationBarDuringPresentation = true
+        //        searchController.searchBar.showsScopeBar = true
         searchController.searchBar.frame = CGRectMake(searchController.searchBar.frame.origin.x
             , searchController.searchBar.frame.origin.y, searchController.searchBar.frame.size.height, 44.0)
         searchController.searchBar.scopeButtonTitles = ["Recommended", "Search Results", "Saved"]
@@ -30,10 +33,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
-//        definesPresentationContext = true
+        //        definesPresentationContext = true
         suggestedSearchFoods = ["apple", "bagel", "banana", "beer", "bread", "carrots", "cheddar cheese", "chicen breast", "chili with beans", "chocolate chip cookie", "coffee", "cola", "corn", "egg", "graham cracker", "granola bar", "green beans", "ground beef patty", "hot dog", "ice cream", "jelly doughnut", "ketchup", "milk", "mixed nuts", "mustard", "oatmeal", "orange juice", "peanut butter", "pizza", "pork chop", "potato", "potato chips", "pretzels", "raisins", "ranch salad dressing", "red wine", "rice", "salsa", "shrimp", "spaghetti", "spaghetti sauce", "tuna", "white wine", "yellow cake"]
     }
-
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -57,25 +60,39 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
         else {
             foodName = suggestedSearchFoods[indexPath.row]
+            searchController.searchBar.prompt = ""
         }
         cell.textLabel?.text = foodName
         cell.accessoryType = UITableViewCellAccessoryType.DisclosureIndicator
-
+        
         return cell
     }
     //MARK: - UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
     }
-
+    
     //MARK: - UISearchResultsUpdating
-
+    
     func updateSearchResultsForSearchController(searchController: UISearchController) {
         let selectedScopeButtonIndex = searchController.searchBar.selectedScopeButtonIndex
         filterContentForSearch(searchController.searchBar.text, scope: selectedScopeButtonIndex)
+        searchController.searchBar.prompt = "Please input the food name"
         tableView.reloadData()
+    }
+    
+    //MARK: - UISearchBarDelegate
+    func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        makeRequest(searchBar.text)
+    }
+    func searchBar(searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
         
     }
+    //    func searchBarCancelButtonClicked(searchBar: UISearchBar) {
+    //        searchController.searchBar.prompt = ""
+    //        tableView.reloadData()
+    //        println("sdf")
+    //    }
     
     //MARK: - Helper
     
@@ -85,6 +102,17 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             return foodMatch != nil
         })
     }
-
+    
+    func makeRequest(searchString: String) {
+        
+        let url = NSURL(string: "https://api.nutritionix.com/v1_1/search/\(searchString)?results=0%3A20&cal_min=0&cal_max=50000&fields=item_name%2Cbrand_name%2Citem_id%2Cbrand_id&appId=\(kAppId)&appKey=\(kAppKey)")
+        let task = NSURLSession.sharedSession().dataTaskWithURL(url!, completionHandler: { (data, response, error) -> Void in
+            var stringData = NSString(data: data, encoding: NSUTF8StringEncoding)
+            println(stringData)
+            println(response)
+        })
+        task.resume()
+        
+    }
 }
 
