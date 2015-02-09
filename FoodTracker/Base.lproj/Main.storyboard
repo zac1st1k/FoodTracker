@@ -45,6 +45,7 @@
                     <navigationItem key="navigationItem" id="GpQ-tv-dYb"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                     <connections>
+                        <outlet property="tableView" destination="2Mv-PH-eMG" id="wBk-T2-Hck"/>
                         <segue destination="Gez-ue-cVo" kind="show" identifier="toDetailVCSegue" id="Vsc-2E-M6U"/>
                     </connections>
                 </viewController>
