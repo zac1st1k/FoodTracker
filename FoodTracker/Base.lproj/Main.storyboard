@@ -33,6 +33,9 @@
                                     <outlet property="delegate" destination="BYZ-38-t0r" id="xyV-mF-0X4"/>
                                 </connections>
                             </tableView>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" hidesWhenStopped="YES" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="6yL-dB-u8D">
+                                <rect key="frame" x="150" y="274" width="20" height="20"/>
+                            </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
@@ -45,6 +48,7 @@
                     <navigationItem key="navigationItem" title="Food Tracker" id="GpQ-tv-dYb"/>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                     <connections>
+                        <outlet property="activityIndicator" destination="6yL-dB-u8D" id="ewP-CL-mc6"/>
                         <outlet property="tableView" destination="2Mv-PH-eMG" id="wBk-T2-Hck"/>
                         <segue destination="Gez-ue-cVo" kind="show" identifier="toDetailVCSegue" id="Vsc-2E-M6U"/>
                     </connections>
