@@ -20,6 +20,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var filteredSuggestedSearchFoods: [String] = []
     var jsonResponse: NSDictionary!
     var apiSearchForFoods: [(name: String, idValue: String)] = []
+    var dataController = DataController()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -103,7 +104,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             makeRequest(searchFoodName)
         }
         else if selectedScopeButtonIndex == 1 {
-            
+            let idValue = apiSearchForFoods[indexPath.row].idValue
+            dataController.saveUSDAItemForId(idValue, jsonDic: jsonResponse)
+            activityIndicator.stopAnimating()
         }
         else if selectedScopeButtonIndex == 2 {
             
