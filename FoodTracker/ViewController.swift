@@ -40,14 +40,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
-//        definesPresentationContext = true
+        // Hide searchController when segue to detail controller
+        definesPresentationContext = false
         suggestedSearchFoods = ["apple", "bagel", "banana", "beer", "bread", "carrots", "cheddar cheese", "chicen breast", "chili with beans", "chocolate chip cookie", "coffee", "cola", "corn", "egg", "graham cracker", "granola bar", "green beans", "ground beef patty", "hot dog", "ice cream", "jelly doughnut", "ketchup", "milk", "mixed nuts", "mustard", "oatmeal", "orange juice", "peanut butter", "pizza", "pork chop", "potato", "potato chips", "pretzels", "raisins", "ranch salad dressing", "red wine", "rice", "salsa", "shrimp", "spaghetti", "spaghetti sauce", "tuna", "white wine", "yellow cake"]
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "usdaItemComplete", name: kUSDAItemCompleted, object: nil)
     }
-
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    
     //MARK: - Navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         if segue.identifier == "toDetailVCSegue" {
@@ -82,7 +84,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
         }
     }
-    
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("Cell", forIndexPath: indexPath) as UITableViewCell
         var foodName: String
@@ -111,6 +112,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         cell.accessoryType = UITableViewCellAccessoryType.DisclosureIndicator
         return cell
     }
+    
     //MARK: - UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
@@ -191,7 +193,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             })
         }
     }
-    
     func makeRequest(searchString: String) {
         var request = NSMutableURLRequest(URL: NSURL(string: "https://api.nutritionix.com/v1_1/search")!)
         let session = NSURLSession.sharedSession()
@@ -214,7 +215,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             println(stringData)
             var conversionError:NSError?
             var jsonDic = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableLeaves, error: &conversionError) as? NSDictionary
-            println(jsonDic)
+//            println(jsonDic)
             if conversionError != nil {
                 println(conversionError!.localizedDescription)
                 let errorString = NSString(data: data, encoding: NSUTF8StringEncoding)
@@ -247,6 +248,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         task.resume()
         */
     }
+    
     //MARK: - Setup CoreData
     func requestFavouriteUSDAItems() {
         let fetchRequest = NSFetchRequest(entityName: "USDAItem")
@@ -254,6 +256,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let managedObjectContext = appDelegate.managedObjectContext
         var error:NSError?
         favouriteUSDAItems = managedObjectContext?.executeFetchRequest(fetchRequest, error: &error) as [USDAItem]
+    }
+    //MARK: - NSNotificationCenter
+    func usdaItemDidComplete(notification: NSNotification) {
+        println("usdaItemDidComplete in ViewController")
+        requestFavouriteUSDAItems()
+        let selectedScopeButtonIndex = searchController.searchBar.selectedScopeButtonIndex
+        if selectedScopeButtonIndex == 2 {
+            tableView.reloadData()
+        }
+    }
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 }
 

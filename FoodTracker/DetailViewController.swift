@@ -13,6 +13,11 @@ class DetailViewController: UIViewController {
     @IBOutlet weak var textVIew: UITextView!
     var usdaItem:USDAItem?
     
+    required init(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "usdaItemDidComplete", name: kUSDAItemCompleted, object: nil)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -34,7 +39,16 @@ class DetailViewController: UIViewController {
         // Pass the selected object to the new view controller.
     }
     */
+    
+    func usdaItemDidComplete(notification: NSNotification) {
+        usdaItem = notification.object as? USDAItem
+    }
+    
     @IBAction func eatItTapped(sender: UIBarButtonItem) {
+    }
+    
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 
 }
