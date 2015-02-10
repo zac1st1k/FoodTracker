@@ -31,7 +31,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         searchController = UISearchController(searchResultsController: nil)
 
         searchController.dimsBackgroundDuringPresentation = false
-        searchController.hidesNavigationBarDuringPresentation = true
+        searchController.hidesNavigationBarDuringPresentation = false
 //        searchController.searchBar.showsScopeBar = true
         searchController.searchBar.frame = CGRectMake(searchController.searchBar.frame.origin.x
             , searchController.searchBar.frame.origin.y, searchController.searchBar.frame.size.height, 44.0)
@@ -64,7 +64,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             return apiSearchForFoods.count
         }
         else {
-            return favouriteUSDAItems.count
+            if self.searchController.active {
+                return filteredFavoritedUSDAItems.count
+            }
+            else {
+                return favouriteUSDAItems.count
+            }
         }
     }
     
@@ -84,7 +89,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 foodName = apiSearchForFoods[indexPath.row].name
         }
         else {
-            foodName = favouriteUSDAItems[indexPath.row].name
+            if self.searchController.active {
+                foodName = self.filteredFavoritedUSDAItems[indexPath.row].name
+            }
+            else {
+                foodName = self.favouriteUSDAItems[indexPath.row].name
+            }
         }
         
         cell.textLabel?.text = foodName
@@ -93,7 +103,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     //MARK: - UITableViewDelegate
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-//        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
         activityIndicator.startAnimating()
         let selectedScopeButtonIndex = searchController.searchBar.selectedScopeButtonIndex
         if selectedScopeButtonIndex == 0 {
@@ -118,7 +128,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
 
     //MARK: - UISearchResultsUpdating
-
     func updateSearchResultsForSearchController(searchController: UISearchController) {
         let selectedScopeButtonIndex = searchController.searchBar.selectedScopeButtonIndex
         filterContentForSearch(searchController.searchBar.text, scope: selectedScopeButtonIndex)
@@ -136,6 +145,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         if selectedScope == 2 {
             requestFavouriteUSDAItems()
         }
+        println("SelectedScopeDidChanged")
         tableView.reloadData()
     }
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
@@ -153,12 +163,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 return foodMatch != nil
             })
         }
-//        else if scope == 2 {
-//            self.filteredFavoritedUSDAItems = self.favouriteUSDAItems.filter({ (item: USDAItem) -> Bool in
-//                var stringMatch = item.name.rangeOfString(searchText)
-//                return stringMatch != nil
-//            })
-//        }
+        else if scope == 2 {
+            filteredFavoritedUSDAItems = favouriteUSDAItems.filter({ (item: USDAItem) -> Bool in
+                var stringMatch = item.name.rangeOfString(searchText)
+                return stringMatch != nil
+            })
+        }
     }
     
     func makeRequest(searchString: String) {
