@@ -48,6 +48,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+    //MARK: - Navigation
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        if segue.identifier == "toDetailVCSegue" {
+            if sender != nil {
+                var DetailVC = segue.destinationViewController as DetailViewController
+                DetailVC.usdaItem = sender as? USDAItem
+            }
+        }
+//        searchController.active = false
+    }
     
     //MARK: - UITableViewDataSource
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -121,9 +131,21 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let idValue = apiSearchForFoods[indexPath.row].idValue
             dataController.saveUSDAItemForId(idValue, jsonDic: jsonResponse)
             activityIndicator.stopAnimating()
+            self.performSegueWithIdentifier("toDetailVCSegue", sender: nil)
         }
         else if selectedScopeButtonIndex == 2 {
-            
+            activityIndicator.stopAnimating()
+            if searchController.active {
+                let usdaItem = filteredFavoritedUSDAItems[indexPath.row]
+                performSegueWithIdentifier("toDetailVCSegue", sender: usdaItem)
+                println("active")
+            }
+            else {
+                let usdaItem = favouriteUSDAItems[indexPath.row]
+                performSegueWithIdentifier("toDetailVCSegue", sender: usdaItem)
+                println("NotActive")
+
+            }
         }
     }
 
@@ -145,17 +167,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         if selectedScope == 2 {
             requestFavouriteUSDAItems()
         }
-        println("SelectedScopeDidChanged")
         tableView.reloadData()
     }
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
         searchController.searchBar.prompt = ""
         tableView.reloadData()
+        activityIndicator.stopAnimating()
         println("sdf")
     }
     
     //MARK: - Helper
-    
     func filterContentForSearch (searchText: String, scope: Int) {
         if scope == 0 {
             filteredSuggestedSearchFoods = suggestedSearchFoods.filter({ (food: String) -> Bool in
