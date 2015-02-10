@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchControllerDelegate, UISearchBarDelegate, UISearchResultsUpdating {
     
@@ -21,7 +22,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var jsonResponse: NSDictionary!
     var apiSearchForFoods: [(name: String, idValue: String)] = []
     var dataController = DataController()
-    
+    var favouriteUSDAItems:[USDAItem] = []
+    var filteredFavoritedUSDAItems:[USDAItem] = []
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -58,10 +61,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
         }
         else if selectedScopeButtonIndex == 1 {
-            return self.apiSearchForFoods.count
+            return apiSearchForFoods.count
         }
         else {
-            return 0
+            return favouriteUSDAItems.count
         }
     }
     
@@ -78,11 +81,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }
         }
         else if selectedScopeButtonIndex == 1 {
-            foodName = apiSearchForFoods[indexPath.row].name
+                foodName = apiSearchForFoods[indexPath.row].name
         }
         else {
-            foodName = ""
+            foodName = favouriteUSDAItems[indexPath.row].name
         }
+        
         cell.textLabel?.text = foodName
         cell.accessoryType = UITableViewCellAccessoryType.DisclosureIndicator
         return cell
@@ -129,21 +133,32 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         makeRequest(searchBar.text)
     }
     func searchBar(searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
+        if selectedScope == 2 {
+            requestFavouriteUSDAItems()
+        }
         tableView.reloadData()
     }
-//    func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-//        searchController.searchBar.prompt = ""
-//        tableView.reloadData()
-//        println("sdf")
-//    }
+    func searchBarCancelButtonClicked(searchBar: UISearchBar) {
+        searchController.searchBar.prompt = ""
+        tableView.reloadData()
+        println("sdf")
+    }
     
     //MARK: - Helper
     
     func filterContentForSearch (searchText: String, scope: Int) {
-        filteredSuggestedSearchFoods = suggestedSearchFoods.filter({ (food: String) -> Bool in
-            var foodMatch = food.rangeOfString(searchText)
-            return foodMatch != nil
-        })
+        if scope == 0 {
+            filteredSuggestedSearchFoods = suggestedSearchFoods.filter({ (food: String) -> Bool in
+                var foodMatch = food.rangeOfString(searchText)
+                return foodMatch != nil
+            })
+        }
+//        else if scope == 2 {
+//            self.filteredFavoritedUSDAItems = self.favouriteUSDAItems.filter({ (item: USDAItem) -> Bool in
+//                var stringMatch = item.name.rangeOfString(searchText)
+//                return stringMatch != nil
+//            })
+//        }
     }
     
     func makeRequest(searchString: String) {
@@ -200,6 +215,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         })
         task.resume()
         */
+    }
+    //MARK: - Setup CoreData
+    func requestFavouriteUSDAItems() {
+        let fetchRequest = NSFetchRequest(entityName: "USDAItem")
+        let appDelegate = UIApplication.sharedApplication().delegate as AppDelegate
+        let managedObjectContext = appDelegate.managedObjectContext
+        var error:NSError?
+        favouriteUSDAItems = managedObjectContext?.executeFetchRequest(fetchRequest, error: &error) as [USDAItem]
     }
 }
 
