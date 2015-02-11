@@ -187,7 +187,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         tableView.reloadData()
     }
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-        searchController.searchBar.prompt = ""
+        searchController.searchBar.prompt = nil
         tableView.reloadData()
         activityIndicator.stopAnimating()
         println("CancelButtonClicked")
