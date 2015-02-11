@@ -41,13 +41,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         searchController.searchResultsUpdater = self
         searchController.searchBar.delegate = self
         // Hide searchController when segue to detail controller
-        definesPresentationContext = false
+        definesPresentationContext = true
         suggestedSearchFoods = ["apple", "bagel", "banana", "beer", "bread", "carrots", "cheddar cheese", "chicen breast", "chili with beans", "chocolate chip cookie", "coffee", "cola", "corn", "egg", "graham cracker", "granola bar", "green beans", "ground beef patty", "hot dog", "ice cream", "jelly doughnut", "ketchup", "milk", "mixed nuts", "mustard", "oatmeal", "orange juice", "peanut butter", "pizza", "pork chop", "potato", "potato chips", "pretzels", "raisins", "ranch salad dressing", "red wine", "rice", "salsa", "shrimp", "spaghetti", "spaghetti sauce", "tuna", "white wine", "yellow cake"]
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "usdaItemComplete", name: kUSDAItemCompleted, object: nil)
+        
+        //add : in selector!
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "usdaItemDidComplete:", name: kUSDAItemCompleted, object: nil)
     }
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
     
     //MARK: - Navigation
@@ -58,7 +64,16 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 DetailVC.usdaItem = sender as? USDAItem
             }
         }
-//        searchController.active = false
+    }
+    
+    //MARK: - NSNotificationCenter
+    func usdaItemDidComplete(notification: NSNotification) {
+        println("usdaItemDidComplete in ViewController")
+        requestFavouriteUSDAItems()
+        let selectedScopeButtonIndex = searchController.searchBar.selectedScopeButtonIndex
+        if selectedScopeButtonIndex == 2 {
+            tableView.reloadData()
+        }
     }
     
     //MARK: - UITableViewDataSource
@@ -130,10 +145,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             makeRequest(searchFoodName)
         }
         else if selectedScopeButtonIndex == 1 {
-            let idValue = apiSearchForFoods[indexPath.row].idValue
-            dataController.saveUSDAItemForId(idValue, jsonDic: jsonResponse)
             activityIndicator.stopAnimating()
+            let idValue = apiSearchForFoods[indexPath.row].idValue
             self.performSegueWithIdentifier("toDetailVCSegue", sender: nil)
+            dataController.saveUSDAItemForId(idValue, jsonDic: jsonResponse)
         }
         else if selectedScopeButtonIndex == 2 {
             activityIndicator.stopAnimating()
@@ -175,20 +190,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         searchController.searchBar.prompt = ""
         tableView.reloadData()
         activityIndicator.stopAnimating()
-        println("sdf")
+        println("CancelButtonClicked")
     }
     
     //MARK: - Helper
     func filterContentForSearch (searchText: String, scope: Int) {
         if scope == 0 {
             filteredSuggestedSearchFoods = suggestedSearchFoods.filter({ (food: String) -> Bool in
-                var foodMatch = food.rangeOfString(searchText)
+                var foodMatch = food.uppercaseString.rangeOfString(searchText.uppercaseString)
                 return foodMatch != nil
             })
         }
         else if scope == 2 {
             filteredFavoritedUSDAItems = favouriteUSDAItems.filter({ (item: USDAItem) -> Bool in
-                var stringMatch = item.name.rangeOfString(searchText)
+                var stringMatch = item.name.uppercaseString.rangeOfString(searchText.uppercaseString)
                 return stringMatch != nil
             })
         }
@@ -212,7 +227,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         
         var task = session.dataTaskWithRequest(request, completionHandler: { (data, response, error) -> Void in
             var stringData = NSString(data: data, encoding: NSUTF8StringEncoding)
-            println(stringData)
+//            println(stringData)
             var conversionError:NSError?
             var jsonDic = NSJSONSerialization.JSONObjectWithData(data, options: NSJSONReadingOptions.MutableLeaves, error: &conversionError) as? NSDictionary
 //            println(jsonDic)
@@ -256,18 +271,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         let managedObjectContext = appDelegate.managedObjectContext
         var error:NSError?
         favouriteUSDAItems = managedObjectContext?.executeFetchRequest(fetchRequest, error: &error) as [USDAItem]
-    }
-    //MARK: - NSNotificationCenter
-    func usdaItemDidComplete(notification: NSNotification) {
-        println("usdaItemDidComplete in ViewController")
-        requestFavouriteUSDAItems()
-        let selectedScopeButtonIndex = searchController.searchBar.selectedScopeButtonIndex
-        if selectedScopeButtonIndex == 2 {
-            tableView.reloadData()
-        }
-    }
-    deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 }
 
